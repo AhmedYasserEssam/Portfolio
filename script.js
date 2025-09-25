@@ -712,6 +712,41 @@ function initializeMobileOptimizations() {
             // Add some top padding to ensure photo is not cut off
             hero.style.paddingTop = `${navbarHeight + 20}px`;
         }
+        
+        // Fix About section text rendering on mobile
+        const aboutSection = document.querySelector('#about');
+        const aboutText = document.querySelector('.about-text');
+        if (aboutSection && aboutText && window.innerWidth <= 768) {
+            // Ensure proper text wrapping and prevent cutoff
+            aboutText.style.width = '100%';
+            aboutText.style.maxWidth = '100%';
+            aboutText.style.overflowWrap = 'break-word';
+            aboutText.style.wordWrap = 'break-word';
+            
+            // Fix code blocks
+            const codeBlocks = aboutSection.querySelectorAll('.code-block');
+            codeBlocks.forEach(block => {
+                block.style.width = '100%';
+                block.style.maxWidth = '100%';
+                block.style.margin = '0 0 2rem 0';
+                
+                const codeContent = block.querySelector('.code-content');
+                if (codeContent) {
+                    codeContent.style.overflowX = 'auto';
+                    codeContent.style.wordWrap = 'break-word';
+                }
+            });
+            
+            // Fix paragraphs
+            const paragraphs = aboutText.querySelectorAll('p');
+            paragraphs.forEach(p => {
+                p.style.width = '100%';
+                p.style.maxWidth = '100%';
+                p.style.wordWrap = 'break-word';
+                p.style.overflowWrap = 'break-word';
+                p.style.hyphens = 'auto';
+            });
+        }
     }
     
     // Set initial viewport height
