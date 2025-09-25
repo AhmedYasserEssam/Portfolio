@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeNavbarScrollEffect();
     initializeSmoothScrolling();
     initializeVideoModal();
+    initializeMobileOptimizations();
 });
 
 // Always Dark Theme
@@ -30,6 +31,8 @@ function initializeThemeToggle() {
 function initializeMobileMenu() {
     const hamburger = document.getElementById('hamburger');
     const navMenu = document.getElementById('nav-menu');
+    
+    if (!hamburger || !navMenu) return;
     
     hamburger.addEventListener('click', function() {
         hamburger.classList.toggle('active');
@@ -51,6 +54,24 @@ function initializeMobileMenu() {
             navMenu.classList.remove('active');
             document.body.style.overflow = '';
         });
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!hamburger.contains(event.target) && !navMenu.contains(event.target)) {
+            hamburger.classList.remove('active');
+            navMenu.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+            hamburger.classList.remove('active');
+            navMenu.classList.remove('active');
+            document.body.style.overflow = '';
+        }
     });
 }
 
@@ -576,6 +597,133 @@ function debounce(func, wait, immediate) {
     document.head.appendChild(style);
 })();
 
+// Mobile Optimizations
+function initializeMobileOptimizations() {
+    // Reduce particle count on mobile for better performance
+    if (window.innerWidth <= 768 && typeof particlesJS !== 'undefined') {
+        particlesJS('particles-js', {
+            particles: {
+                number: {
+                    value: 30, // Reduced from 80
+                    density: {
+                        enable: true,
+                        value_area: 1200
+                    }
+                },
+                color: {
+                    value: "#64b5f6"
+                },
+                shape: {
+                    type: "circle"
+                },
+                opacity: {
+                    value: 0.3 // Reduced opacity
+                },
+                size: {
+                    value: 2, // Smaller particles
+                    random: true
+                },
+                line_linked: {
+                    enable: true,
+                    distance: 120, // Shorter lines
+                    color: "#64b5f6",
+                    opacity: 0.2,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 0.5, // Slower movement
+                    direction: "none",
+                    random: false,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: {
+                        enable: false // Disable hover on mobile
+                    },
+                    onclick: {
+                        enable: true,
+                        mode: "push"
+                    }
+                }
+            },
+            retina_detect: true
+        });
+    }
+    
+    // Add mobile-specific touch handling
+    document.addEventListener('touchstart', function() {
+        // Enable active states on touch
+    }, {passive: true});
+    
+    // Optimize scroll performance on mobile
+    let ticking = false;
+    function updateOnScroll() {
+        // Throttled scroll updates for mobile
+        ticking = false;
+    }
+    
+    window.addEventListener('scroll', function() {
+        if (!ticking) {
+            requestAnimationFrame(updateOnScroll);
+            ticking = true;
+        }
+    }, {passive: true});
+    
+    // Handle orientation changes
+    window.addEventListener('orientationchange', function() {
+        setTimeout(() => {
+            // Recalculate layouts after orientation change
+            if (window.innerWidth > 768) {
+                const hamburger = document.getElementById('hamburger');
+                const navMenu = document.getElementById('nav-menu');
+                if (hamburger && navMenu) {
+                    hamburger.classList.remove('active');
+                    navMenu.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }
+        }, 500);
+    });
+    
+    // Improve mobile typography based on device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+        document.documentElement.style.setProperty('--font-size-adjust', '1.1');
+    }
+    
+    // Fix mobile viewport height issues (especially iOS Safari)
+    function setMobileViewportHeight() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+        
+        // Ensure hero section has proper height
+        const hero = document.querySelector('.hero');
+        if (hero && window.innerWidth <= 768) {
+            const navbarHeight = document.getElementById('navbar')?.offsetHeight || 80;
+            const availableHeight = window.innerHeight - navbarHeight;
+            hero.style.minHeight = `${availableHeight}px`;
+            
+            // Add some top padding to ensure photo is not cut off
+            hero.style.paddingTop = `${navbarHeight + 20}px`;
+        }
+    }
+    
+    // Set initial viewport height
+    setMobileViewportHeight();
+    
+    // Update on resize and orientation change
+    window.addEventListener('resize', setMobileViewportHeight);
+    window.addEventListener('orientationchange', () => {
+        setTimeout(setMobileViewportHeight, 500);
+    });
+}
+
 // Console greeting
 console.log(`
 %c┌─────────────────────────────────────────────┐
@@ -622,6 +770,8 @@ function openVideoModal(videoId) {
     const modal = document.getElementById('video-modal');
     const video = document.getElementById(videoId);
     
+    if (!modal || !video) return;
+    
     // Hide all videos and info sections first
     const allVideos = modal.querySelectorAll('video');
     const allInfos = modal.querySelectorAll('.video-modal-info');
@@ -632,23 +782,29 @@ function openVideoModal(videoId) {
     });
     allInfos.forEach(info => info.style.display = 'none');
     
-    if (modal) {
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-    }
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
     
     // Show and start the selected video
-    if (video) {
-        video.style.display = 'block';
-        video.currentTime = 0;
-        video.play();
-        
-        // Show corresponding info section
-        const infoId = videoId.replace('-video', '-info');
-        const infoElement = document.getElementById(infoId);
-        if (infoElement) {
-            infoElement.style.display = 'block';
-        }
+    video.style.display = 'block';
+    video.currentTime = 0;
+    
+    // Auto-play on desktop, require user interaction on mobile
+    if (window.innerWidth > 768) {
+        video.play().catch(e => {
+            // Auto-play failed, that's okay
+            console.log('Auto-play prevented:', e);
+        });
+    } else {
+        // On mobile, don't auto-play to save data
+        video.controls = true;
+    }
+    
+    // Show corresponding info section
+    const infoId = videoId.replace('-video', '-info');
+    const infoElement = document.getElementById(infoId);
+    if (infoElement) {
+        infoElement.style.display = 'block';
     }
 }
 
